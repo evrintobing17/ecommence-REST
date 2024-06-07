@@ -76,7 +76,12 @@ func (handler *sellerHandler) loginSeller(c *gin.Context) {
 	response := userDTO.ResLogin{
 		Jwt: jwt,
 	}
-	jsonhttpresponse.OK(c, response)
+	jsonhttpresponse.OK(c, models.APIResponseOptions{
+		StatusCode: 200,
+		Message:    "success",
+		Errors:     err,
+		Data:       response,
+	})
 }
 
 func (handler *sellerHandler) registerSeller(c *gin.Context) {

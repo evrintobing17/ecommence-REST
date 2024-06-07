@@ -18,6 +18,10 @@ type OrderRequest struct {
 	Quantity int `json:"quantity" binding:"required,gt=0"`
 }
 
+type AcceptOrderRequest struct {
+	ItemID   int `json:"item_id" binding:"required"`
+}
+
 func (o Order) TableName() string {
 	return "ecommerce.order"
 }

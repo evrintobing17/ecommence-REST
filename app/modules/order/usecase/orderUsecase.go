@@ -4,6 +4,7 @@ import (
 	"github.com/evrintobing17/ecommence-REST/app/models"
 	"github.com/evrintobing17/ecommence-REST/app/modules/order"
 	"github.com/evrintobing17/ecommence-REST/app/modules/product"
+	"github.com/jinzhu/gorm"
 )
 
 type orderUC struct {
@@ -19,15 +20,32 @@ func NewOrderUsecase(orderRepo order.OrderRepository, productRepo product.Produc
 }
 
 // AcceptOrder implements order.OrderUsecase.
-func (o *orderUC) AcceptOrder(id int, alamat string) (*models.Order, error) {
-	updateData := make(map[string]interface{})
-	updateData["id"] = id
-	updateData["delivery_destination_address"] = alamat
-	creatOrder, err := o.orderRepo.UpdateOrder(updateData)
+func (o *orderUC) AcceptOrder(sellerID, itemid int, alamat string) (*models.Order, error) {
+	updateData := map[string]interface{}{
+		"id":                           itemid,
+		"delivery_destination_address": alamat,
+		"status":                       "Accepted",
+	}
+
+	isProductExists := true
+	products, err := o.productRepo.GetBySellerID(sellerID)
 	if err != nil {
 		return nil, err
 	}
-	return creatOrder, nil
+	for _, product := range *products {
+		if product.ID != itemid {
+			isProductExists = false
+		}
+	}
+
+	if !isProductExists {
+		return nil, gorm.ErrRecordNotFound
+	}
+	createOrder, err := o.orderRepo.UpdateOrder(updateData)
+	if err != nil {
+		return nil, err
+	}
+	return createOrder, nil
 }
 
 // CreateOrder implements order.OrderUsecase.
@@ -57,6 +75,14 @@ func (o *orderUC) CreateOrder(buyerID, itemID, quantity int, address string) (*m
 // GetListOrder implements order.OrderUsecase.
 func (o *orderUC) GetListOrder(id int) (*[]models.Order, error) {
 	order, err := o.orderRepo.GetListOrder(id)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
+}
+
+func (o *orderUC) GetSellerListOrder(id int) (*[]models.Order, error) {
+	order, err := o.orderRepo.GetSellerListOrder(id)
 	if err != nil {
 		return nil, err
 	}

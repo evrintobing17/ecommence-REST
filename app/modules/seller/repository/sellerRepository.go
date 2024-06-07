@@ -73,7 +73,7 @@ func (r *repo) UpdatePartial(updateData map[string]interface{}) (*models.Seller,
 	}
 
 	var existingUser models.Seller
-	db := r.db.First(&existingUser, "id=?", driverID)
+	db := r.db.Debug().First(&existingUser, "id=?", driverID)
 	if db.Error != nil {
 		return nil, db.Error
 	}

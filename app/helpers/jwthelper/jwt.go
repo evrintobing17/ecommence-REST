@@ -16,14 +16,14 @@ var (
 	jwtSignatureKey string
 )
 
-//AccessJWTClaims - Represent object of claims. Encourage all claims is referred to this struct
+// AccessJWTClaims - Represent object of claims. Encourage all claims is referred to this struct
 type AccessJWTClaims struct {
 	jwt.StandardClaims
 	Id        int   `json:"jti,omitempty"`
 	ExpiresAt int64 `json:"exp,omitempty"`
 }
 
-//AccessTokenClaims - claims object for OAuth request
+// AccessTokenClaims - claims object for OAuth request
 type AccessTokenClaims struct {
 	jwt.StandardClaims
 	Id         int       `json:"id"`
@@ -33,7 +33,7 @@ type AccessTokenClaims struct {
 }
 
 func init() {
-	err := godotenv.Load("application.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Error().Msg("Failed read configuration database")
 		return
@@ -41,7 +41,7 @@ func init() {
 	jwtSignatureKey = os.Getenv("jwt.secretKey")
 }
 
-//NewWithClaims will return token with custom claims
+// NewWithClaims will return token with custom claims
 func NewWithClaims(claims jwt.Claims) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -53,7 +53,7 @@ func NewWithClaims(claims jwt.Claims) (string, error) {
 	return ss, nil
 }
 
-//VerifyTokenWithClaims will verify the validity of token and return the claims
+// VerifyTokenWithClaims will verify the validity of token and return the claims
 func VerifyTokenWithClaims(token string) (*AccessJWTClaims, error) {
 
 	jwtToken, err := jwt.ParseWithClaims(token, &AccessJWTClaims{}, func(token *jwt.Token) (interface{}, error) {

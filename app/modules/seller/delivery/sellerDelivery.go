@@ -5,8 +5,6 @@ import (
 
 	"github.com/evrintobing17/ecommence-REST/app/helpers/jsonhttpresponse"
 	"github.com/evrintobing17/ecommence-REST/app/helpers/requestvalidationerror"
-	"github.com/evrintobing17/ecommence-REST/app/helpers/routehelper"
-	"github.com/evrintobing17/ecommence-REST/app/helpers/structsconverter"
 	"github.com/evrintobing17/ecommence-REST/app/middlewares/authmiddleware"
 	"github.com/evrintobing17/ecommence-REST/app/models"
 	"github.com/evrintobing17/ecommence-REST/app/modules/seller"
@@ -30,12 +28,6 @@ func NewAuthHTTPHandler(r *gin.Engine, sellerUC seller.SellerUsecase, authMiddle
 	{
 		authorized.POST("/login", handlers.loginSeller)
 		authorized.POST("/register", handlers.registerSeller)
-	}
-
-	users := r.Group("/users", handlers.authMiddleware.AuthorizeJWTWithSellerContext())
-	{
-		users.DELETE("", handlers.deleteSeller)
-		users.PUT("", handlers.updateSeller)
 	}
 }
 
@@ -106,7 +98,7 @@ func (handler *sellerHandler) registerSeller(c *gin.Context) {
 		return
 	}
 
-	user, err := handler.sellerUC.Register(registerReq.Name, registerReq.Email, registerReq.Password, registerReq.Address, false)
+	user, err := handler.sellerUC.Register(registerReq.Name, registerReq.Email, registerReq.Password, registerReq.Address)
 
 	if err != nil {
 
@@ -136,100 +128,5 @@ func (handler *sellerHandler) registerSeller(c *gin.Context) {
 		Message:    "success",
 		Errors:     err,
 		Data:       response,
-	})
-}
-
-func (handler *sellerHandler) updateSeller(c *gin.Context) {
-	var request userDTO.ReqUpdate
-	errBind := c.ShouldBindJSON(&request)
-	if errBind != nil {
-		validations := requestvalidationerror.GetvalidationError(errBind)
-
-		if len(validations) > 0 {
-			jsonhttpresponse.BadRequest(c, models.APIResponseOptions{
-				StatusCode:     http.StatusBadRequest,
-				Message:        "failed",
-				ErrorInterface: validations,
-				Data:           nil,
-			})
-			return
-		}
-
-		jsonhttpresponse.BadRequest(c, errBind.Error())
-		return
-	}
-
-	updatedDriverData, err := structsconverter.ToMap(request)
-	if err != nil {
-		jsonhttpresponse.InternalServerError(c, err.Error())
-	}
-
-	//get user ID
-	userAuth, err := routehelper.GetSellerFromJWTContext(c)
-	if err != nil {
-		jsonhttpresponse.BadRequest(c, models.APIResponseOptions{
-			StatusCode: http.StatusBadRequest,
-			Message:    "failed",
-			Errors:     err,
-			Data:       nil,
-		})
-		return
-	}
-
-	updatedDriverData["id"] = userAuth.ID
-
-	updatedUser, err := handler.sellerUC.Update(updatedDriverData)
-	if err != nil {
-		jsonhttpresponse.BadRequest(c, models.APIResponseOptions{
-			StatusCode: http.StatusBadRequest,
-			Message:    "failed",
-			Errors:     err,
-			Data:       nil,
-		})
-		return
-	}
-
-	resp := userDTO.RespUpdate{
-		ID:    updatedUser.ID,
-		Email: updatedUser.Email,
-		Name:  updatedUser.Name,
-		Age:   updatedUser.Address,
-	}
-
-	jsonhttpresponse.OK(c, resp)
-}
-
-func (handler *sellerHandler) deleteSeller(c *gin.Context) {
-	//get user ID
-	userAuth, err := routehelper.GetSellerFromJWTContext(c)
-	if err != nil {
-		jsonhttpresponse.BadRequest(c, models.APIResponseOptions{
-			StatusCode: http.StatusBadRequest,
-			Message:    "failed",
-			Errors:     err,
-			Data:       nil,
-		})
-		return
-	}
-
-	err = handler.sellerUC.DeleteByID(userAuth.ID)
-	if err != nil {
-		jsonhttpresponse.BadRequest(c, models.APIResponseOptions{
-			StatusCode: http.StatusBadRequest,
-			Message:    "failed",
-			Errors:     err,
-			Data:       nil,
-		})
-	}
-
-	resp := userDTO.DeleteResp{
-		Message: "Your account has been succesfully deleted",
-	}
-
-	jsonhttpresponse.OK(c, models.APIResponseOptions{
-		StatusCode: 200,
-		Message:    "success",
-		Errors:     err,
-		Data:       resp,
 	})
 }

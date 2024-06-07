@@ -109,7 +109,7 @@ func (uc *UC) generateUserJWTDriver(userId int) (token string, err error) {
 	return jwtToken, nil
 }
 
-func (uc *UC) Register(username, email, password, address string, isbuyer bool) (driver *models.Seller, err error) {
+func (uc *UC) Register(username, email, password, address string) (driver *models.Seller, err error) {
 	//Cast ReqRegister to model.User
 	userModel := models.Seller{
 		Name:     username,

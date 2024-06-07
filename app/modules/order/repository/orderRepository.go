@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/evrintobing17/ecommence-REST/app/models"
 	"github.com/evrintobing17/ecommence-REST/app/modules/order"
 	"github.com/jinzhu/gorm"
@@ -50,7 +48,6 @@ func (r *repo) InsertOrder(order *models.Order) (*models.Order, error) {
 func (r *repo) UpdateOrder(updateData map[string]interface{}) (*models.Order, error) {
 	var order models.Order
 	db := r.db.Model(&order).Updates(&updateData)
-	fmt.Println(updateData, "apa")
 	if db.Error != nil {
 		return nil, db.Error
 	}
